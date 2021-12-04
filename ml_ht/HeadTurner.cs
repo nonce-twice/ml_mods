@@ -8,6 +8,7 @@ namespace ml_ht
     {
         float m_lockedBodyRotation = 0f;
         bool m_lockBodyRotation = false;
+        bool m_lockKeyToggle = true;
 
         VRCPlayer m_player = null;
         GamelikeInputController m_inputController = null;
@@ -25,6 +26,7 @@ namespace ml_ht
             if((m_player != null) && (m_inputController != null))
             {
                 bool l_ignoreLimit = Input.GetKey(KeyCode.LeftControl);
+                bool l_playerIsMoving = Input.GetAxis("Vertical") != 0 || Input.GetAxis("Horizontal") != 0;
 
                 if(Input.GetKey(KeyCode.LeftAlt))
                 {
@@ -52,13 +54,13 @@ namespace ml_ht
                     }
                 }
 
-                if(Input.GetKeyDown(KeyCode.LeftAlt) && !m_lockBodyRotation)
+                if(Input.GetKeyDown(KeyCode.LeftAlt))
                 {
                     var l_transform = m_player.prop_VRCAvatarManager_0.transform;
                     if(l_transform != null)
                     {
                         m_lockedBodyRotation = l_transform.rotation.eulerAngles.y;
-                        m_lockBodyRotation = true;
+                        m_lockBodyRotation = (m_lockKeyToggle) ? !m_lockBodyRotation : true;
                     }
                 }
                 if((Input.GetKeyUp(KeyCode.LeftAlt) || !Application.isFocused) && m_lockBodyRotation)
@@ -68,8 +70,18 @@ namespace ml_ht
                     {
                         l_transformAvatar.rotation = m_player.transform.rotation;
                     }
+                    if(!m_lockKeyToggle)
+                    {
+                        m_lockBodyRotation = false;
+                    }
+                }
+
+                // Disable body lock when moving along either axis
+                if(l_playerIsMoving && m_lockBodyRotation)
+                {
                     m_lockBodyRotation = false;
                 }
+
                 if(m_lockBodyRotation)
                 {
                     var l_animatorTransform = m_player.prop_VRCAvatarManager_0.transform;
